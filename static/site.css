@@ -1,0 +1,11 @@
+.melon-image {
+    height: 300px;
+    width: 300px;
+    object-fit: cover;
+}
+
+#melon-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
