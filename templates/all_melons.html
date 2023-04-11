@@ -1,16 +1,18 @@
 {% extends "base.html" %}
 
 {% block body %}
-    <h2>All Melons</h2>
-    <div id="melon-list">  <!-- Flex container -->
-        {% for melon in melon_list %}
-            <div class="card text-center" style="width: 300px; margin: 1rem;">
-                <img class="melon-image" src="{{ melon.image_url }}" alt="{{ melon.common_name }}">
-                <div class="card-body">
-                    <a href="{{ url_for('melon_details', melon_id=melon.melon_id) }}">{{ melon.common_name }}</a>
-                    <p>{{ melon.price_str() }}</p>
-                </div>
+<div class="container">
+    <h1 class="mt-3">All Melons</h1>
+    <div id="melon-list">
+        {% for melon in melons %}
+            <div class="melon-card">
+                <img src="{{ melon.image_url }}" alt="{{ melon.common_name }}" class="melon-image">
+                <h4>{{ melon.common_name }}</h4>
+                <p>{{ melon.species }}</p>
+                <p>${{ "%0.2f" | format(melon.price) }}</p>
+                <a href="{{ url_for('add_to_cart', melon_id=melon.melon_id) }}" class="btn btn-primary">Add to cart</a>
             </div>
         {% endfor %}
     </div>
+</div>
 {% endblock %}
