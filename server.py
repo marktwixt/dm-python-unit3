@@ -1,4 +1,4 @@
-from flask import Flask, render_template, flash, session, redirect, url_for
+from flask import Flask, render_template, flash, session, request, redirect, url_for
 from melons import Melon, get_all, get_by_id
 from customers import get_by_username
 from forms import LoginForm
@@ -67,18 +67,25 @@ def show_shopping_cart():
 
     return render_template("cart.html", cart_melons=cart_melons, order_total=order_total)
 
-@app.route("/add-to-cart/<melon_id>")
-def add_to_cart(melon_id):
+
+@app.route("/add-to-cart", methods=["POST"])
+def add_to_cart():
     if "username" not in session:
         flash("Please log in to add items to your shopping cart")
         return redirect(url_for("login"))
+
+    melon_id = request.form.get("melon_id")
+    qty = request.form.get("qty")
+
+    if not melon_id or not qty:
+        flash("Missing data, please try again.")
+        return redirect(url_for("list_melons"))
+
     if 'cart' not in session:
         session['cart'] = {}
-
-    session['cart'][str(melon_id)] = session['cart'].get(str(melon_id), 0) + 1
+    session['cart'][str(melon_id)] = session['cart'].get(str(melon_id), 0) + int(qty)
     session.modified = True
-
-    flash(f"Melon {melon_id} successfully added to cart.")
+    flash(f"{qty} melons of type {melon_id} successfully added to cart.")
     return redirect(url_for("show_shopping_cart"))
 
 @app.route("/empty-cart")
