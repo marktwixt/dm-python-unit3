@@ -1,5 +1,7 @@
 from flask import Flask, render_template, flash, session, redirect, url_for
 from melons import Melon, get_all, get_by_id
+from customers import get_by_username
+from forms import LoginForm
 
 app = Flask(__name__)
 app.secret_key = 'dev'
@@ -7,6 +9,32 @@ app.secret_key = 'dev'
 @app.route("/")
 def homepage():
     return render_template("base.html")
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    form = LoginForm()
+
+    if form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
+
+        # Check if user exists and password is correct
+        user = get_by_username(username)
+        if user and user['password'] == password:
+            session["username"] = username
+            flash("Login successful")
+            return redirect(url_for("list_melons"))
+        else:
+            flash("Invalid username or password")
+
+    return render_template("login.html", form=form)
+
+@app.route("/logout")
+def logout():
+    if "username" in session:
+        del session["username"]
+        flash("You have logged out")
+    return redirect(url_for("login"))
 
 @app.route('/melons')
 def list_melons():
@@ -20,6 +48,9 @@ def show_melon(melon_id):
 
 @app.route("/cart")
 def show_shopping_cart():
+    if "username" not in session:
+        flash("Please log in to view your shopping cart")
+        return redirect(url_for("login"))
     order_total = 0
     cart_melons = []
 
@@ -38,6 +69,9 @@ def show_shopping_cart():
 
 @app.route("/add-to-cart/<melon_id>")
 def add_to_cart(melon_id):
+    if "username" not in session:
+        flash("Please log in to add items to your shopping cart")
+        return redirect(url_for("login"))
     if 'cart' not in session:
         session['cart'] = {}
 
@@ -52,6 +86,10 @@ def empty_cart():
     session['cart'] = {}
     session.modified = True
     return redirect(url_for("show_shopping_cart"))
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template("404.html"), 404
 
 if __name__ == "__main__":
    app.env = "development"
